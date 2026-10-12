@@ -1,0 +1,10 @@
+// Первый пример агента на Dialect (v0.1).
+agent Support {
+    model = "gpt-4o"
+    temperature = 0.3
+
+    tool web_search
+    tool file_read
+
+    memory persistent = true
+}
