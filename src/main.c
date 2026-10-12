@@ -50,12 +50,16 @@ int main(int argc, char **argv) {
         fprintf(stderr, "dialect: ошибка разбора: %s\n", r.error);
         return 1;
     }
-    if (!r.agent) {
-        fprintf(stderr, "dialect: агент не найден\n");
+    if (!r.agent && !r.harness) {
+        fprintf(stderr, "dialect: ни agent, ни harness не найдены\n");
         return 1;
     }
 
-    codegen(r.agent, stdout);
+    codegen_prologue(stdout);
+    if (r.agent) codegen(r.agent, stdout);
+    if (r.harness) codegen_harness(r.harness, stdout);
+    codegen_epilogue(stdout);
+
     parse_result_free(&r);
     return 0;
 }

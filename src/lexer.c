@@ -71,6 +71,10 @@ static Token lex_keyword_or_ident(Lexer *lx) {
         {"run",     TOK_KW_RUN},
         {"cron",    TOK_KW_CRON},
         {"allow",   TOK_KW_ALLOW},
+        {"gateway", TOK_KW_GATEWAY},
+        {"every",   TOK_KW_EVERY},
+        {"user",    TOK_KW_USER},
+        {"chat",    TOK_KW_CHAT},
         {"true",    TOK_KW_TRUE},
         {"false",   TOK_KW_FALSE},
     };
@@ -161,6 +165,10 @@ const char *token_name(TokenType t) {
         case TOK_KW_RUN: return "run";
         case TOK_KW_CRON: return "cron";
         case TOK_KW_ALLOW: return "allow";
+        case TOK_KW_GATEWAY: return "gateway";
+        case TOK_KW_EVERY: return "every";
+        case TOK_KW_USER: return "user";
+        case TOK_KW_CHAT: return "chat";
         case TOK_KW_TRUE: return "true";
         case TOK_KW_FALSE: return "false";
     }
