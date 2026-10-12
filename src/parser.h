@@ -9,6 +9,7 @@ typedef struct {
     char *name;
 
     char *model;             /* строка модели или NULL */
+    char *system;            /* системный промпт или NULL */
     int has_temperature;     /* задан ли temperature */
     double temperature;
 

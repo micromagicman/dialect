@@ -1,6 +1,7 @@
 // Первый пример агента на Dialect (v0.1).
 agent Support {
     model = "gpt-4o"
+    system = "Ты — дружелюбный помощник. Отвечай кратко и по делу."
     temperature = 0.3
 
     tool web_search
