@@ -1,0 +1,6 @@
+// Тестовый агент: реальный вызов LLM (DeepSeek).
+agent Assistant {
+    model = "deepseek-chat"
+    system = "Ты — дружелюбный помощник. Отвечай кратко и по делу."
+    temperature = 0.3
+}

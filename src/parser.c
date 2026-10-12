@@ -100,6 +100,10 @@ static Agent *parse_agent(Parser *p) {
                 a->has_temperature = 1;
                 a->temperature = strtod(p->cur.start, NULL);
                 advance(p);
+            } else if (strcmp(field, "system") == 0 && is(p, TOK_STRING)) {
+                free(a->system);
+                a->system = dup_tok(&p->cur);
+                advance(p);
             } else if (is(p, TOK_NUMBER) || is(p, TOK_STRING)) {
                 advance(p); /* неизвестное поле — принимаем и пропускаем значение */
             } else {
@@ -117,7 +121,7 @@ static Agent *parse_agent(Parser *p) {
     return a;
 
 fail:
-    if (a) { free(a->name); free(a->model); for (size_t i = 0; i < a->n_tools; i++) free(a->tools[i]); free(a->tools); free(a); }
+    if (a) { free(a->name); free(a->model); free(a->system); for (size_t i = 0; i < a->n_tools; i++) free(a->tools[i]); free(a->tools); free(a); }
     return NULL;
 }
 
@@ -228,6 +232,7 @@ void parse_result_free(ParseResult *r) {
     if (r->agent) {
         free(r->agent->name);
         free(r->agent->model);
+        free(r->agent->system);
         for (size_t i = 0; i < r->agent->n_tools; i++) free(r->agent->tools[i]);
         free(r->agent->tools);
         free(r->agent);
