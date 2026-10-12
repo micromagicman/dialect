@@ -8,3 +8,10 @@ agent Support {
 
     memory persistent = true
 }
+
+// Среда (харнесс), в которой живёт агент.
+harness Support {
+    gateway telegram
+    allow user 196778804
+    cron "daily-digest" every "0 9 * * *" run digest
+}

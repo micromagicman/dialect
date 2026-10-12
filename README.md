@@ -1,37 +1,37 @@
 # Dialect
 
-Язык программирования для описания ИИ-агентов и их харнессов (среды исполнения).
+A programming language for describing AI agents and their harnesses (execution environments).
 
-Dialect — декларативный язык: агент и его окружение описываются текстом, а не собираются императивным кодом. Компилируется в нативный код (без виртуальной машины в рантайме).
+Dialect is declarative: an agent and its environment are described as text rather than assembled through imperative code. It compiles to native code (no virtual machine at runtime).
 
-## Идея
+## Idea
 
-Две части в одном языке:
+Two parts in one language:
 
-- **ядро** — Тьюринг-полное (типы, функции, структуры, циклы, IO) — достаточное, чтобы на Dialect написать сам Dialect;
-- **агентная надстройка** — блоки `agent` (поведение) и `harness` (среда: платформы, тулзы, память, расписание).
+- **core** — Turing-complete (types, functions, structs, loops, I/O) — sufficient to write Dialect itself in Dialect;
+- **agent layer** — `agent` (behavior) and `harness` (environment: platforms, tools, memory, scheduling) blocks.
 
-## Цель self-hosting
+## Self-hosting goal
 
-Первая версия компилятора написана на C. Вторая версия компилятора должна быть написана на самом Dialect и собрана первой версией.
+The first version of the compiler is written in C. The second version of the compiler should be written in Dialect itself and built by the first version.
 
-## Статус
+## Status
 
-**v0.1 — каркас компилятора.** Реализован сквозной пайплайн:
+**v0.1 — compiler skeleton.** An end-to-end pipeline is implemented:
 
-`лексер → парсер → AST → кодоген в C → gcc → нативный бинарь`
+`lexer → parser → AST → C codegen → gcc → native binary`
 
-Текущая грамматика (минимальная) распознаёт блок `agent` с полями (`model`, произвольные поля вида `name = value`, `tool`, `memory`). Кодоген пока генерирует «привет, мир» — программу, печатающую разобранную конфигурацию, чтобы проверить пайплайн end-to-end.
+The current (minimal) grammar recognizes an `agent` block with fields (`model`, arbitrary `name = value` fields, `tool`, `memory`). The codegen currently emits a "hello world" — a program that prints the parsed configuration — to verify the pipeline end-to-end.
 
-## Сборка
+## Build
 
 ```sh
-make            # собрать компилятор (dialect)
-make compile    # .dialect → C → нативный бинарь → запуск
-make tokens     # отладка лексера
+make            # build the compiler (dialect)
+make compile    # .dialect → C → native binary → run
+make tokens     # lexer debugging
 ```
 
-## Пример
+## Example
 
 ```dialect
 agent Support {
@@ -45,19 +45,19 @@ agent Support {
 }
 ```
 
-## Структура
+## Structure
 
 ```
-src/lexer.c    — лексический анализатор
-src/parser.c   — рекурсивный спуск, AST
-src/codegen.c  — генерация C-кода
-examples/      — примеры на Dialect
+src/lexer.c    — lexical analyzer
+src/parser.c   — recursive descent, AST
+src/codegen.c  — C code generation
+examples/      — Dialect examples
 ```
 
 ## Roadmap
 
-1. Ядро языка: типы, выражения, переменные, функции, управление потоком.
-2. Полный блок `harness`.
-3. Агентная семантика.
-4. LLVM-бэкенд вместо C-прослойки.
-5. Self-hosting: компилятор на Dialect.
+1. Language core: types, expressions, variables, functions, control flow.
+2. Full `harness` block.
+3. Agent semantics.
+4. LLVM backend instead of the C layer.
+5. Self-hosting: the compiler in Dialect.

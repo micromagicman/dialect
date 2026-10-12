@@ -35,6 +35,10 @@ typedef enum {
     TOK_KW_RUN,
     TOK_KW_CRON,
     TOK_KW_ALLOW,
+    TOK_KW_GATEWAY,
+    TOK_KW_EVERY,
+    TOK_KW_USER,
+    TOK_KW_CHAT,
     TOK_KW_TRUE,
     TOK_KW_FALSE,
 } TokenType;
