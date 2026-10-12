@@ -41,6 +41,34 @@ typedef enum {
     TOK_KW_CHAT,
     TOK_KW_TRUE,
     TOK_KW_FALSE,
+
+    /* ключевые слова ядра языка (этап 1) */
+    TOK_KW_LET,
+    TOK_KW_FN,
+    TOK_KW_IF,
+    TOK_KW_ELSE,
+    TOK_KW_WHILE,
+    TOK_KW_RETURN,
+    TOK_KW_INT,
+    TOK_KW_STR,
+    TOK_KW_BOOL,
+
+    /* операторы */
+    TOK_PLUS,       /* + */
+    TOK_MINUS,      /* - */
+    TOK_STAR,       /* * */
+    TOK_SLASH,      /* / */
+    TOK_EQ,         /* == */
+    TOK_NE,         /* != */
+    TOK_LT,         /* < */
+    TOK_GT,         /* > */
+    TOK_LE,         /* <= */
+    TOK_GE,         /* >= */
+    TOK_AND,        /* && */
+    TOK_OR,         /* || */
+    TOK_NOT,        /* ! */
+    TOK_ARROW,      /* -> */
+    TOK_SEMI,       /* ; (опционально, допускаем) */
 } TokenType;
 
 typedef struct {

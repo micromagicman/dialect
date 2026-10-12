@@ -1,4 +1,5 @@
 #include "codegen.h"
+#include <string.h>
 
 /* Экранирует строку для вставки в C-строковый литерал. */
 static void emit_c_string(FILE *out, const char *s) {
@@ -75,10 +76,12 @@ void codegen_prologue(FILE *out) {
         "        }\n"
         "    }\n"
         "    fputc('\\n', stdout);\n"
-        "}\n"
-        "\n"
-        "int main(void) {\n",
+        "}\n",
         out);
+}
+
+void codegen_main_open(FILE *out) {
+    fputs("int main(void) {\n", out);
 }
 
 void codegen_epilogue(FILE *out) {
@@ -172,5 +175,138 @@ void codegen_harness(const Harness *h, FILE *out) {
         fputs(", ", out);
         emit_c_string(out, h->crons[i].task);
         fputs(");\n", out);
+    }
+}
+
+/* ===== Ядро языка: кодоген выражений/statement'ов/функций ===== */
+
+static const char *ctype(Type t) {
+    switch (t) {
+        case TYPE_INT: return "long";
+        case TYPE_STR: return "char*";
+        case TYPE_BOOL: return "int";
+        default: return "void";
+    }
+}
+
+static void codegen_expr(const Expr *e, FILE *out);
+
+static void codegen_block(const Stmt *b, FILE *out);
+
+static void codegen_stmt(const Stmt *s, FILE *out) {
+    switch (s->kind) {
+        case STMT_LET:
+            fprintf(out, "    %s %s", ctype(s->type), s->name);
+            if (s->init) { fputs(" = ", out); codegen_expr(s->init, out); }
+            fputs(";\n", out);
+            break;
+        case STMT_ASSIGN:
+            fputs("    ", out); fputs(s->name, out);
+            fputs(" = ", out); codegen_expr(s->value, out); fputs(";\n", out);
+            break;
+        case STMT_EXPR:
+            fputs("    ", out); codegen_expr(s->expr, out); fputs(";\n", out);
+            break;
+        case STMT_RETURN:
+            fputs("    return", out);
+            if (s->value) { fputc(' ', out); codegen_expr(s->value, out); }
+            fputs(";\n", out);
+            break;
+        case STMT_IF:
+            fputs("    if (", out); codegen_expr(s->cond, out); fputs(") {\n", out);
+            codegen_block(s->then, out);
+            fputs("    }", out);
+            if (s->else_) { fputs(" else {\n", out); codegen_block(s->else_, out); fputs("    }", out); }
+            fputs("\n", out);
+            break;
+        case STMT_WHILE:
+            fputs("    while (", out); codegen_expr(s->cond, out); fputs(") {\n", out);
+            codegen_block(s->body, out);
+            fputs("    }\n", out);
+            break;
+        case STMT_BLOCK:
+            fputs("    {\n", out);
+            codegen_block(s, out);
+            fputs("    }\n", out);
+            break;
+    }
+}
+
+static void codegen_block(const Stmt *b, FILE *out) {
+    if (b && b->kind == STMT_BLOCK) {
+        for (size_t i = 0; i < b->n_stmts; i++) codegen_stmt(b->stmts[i], out);
+    } else if (b) {
+        codegen_stmt(b, out);
+    }
+}
+
+static void codegen_expr(const Expr *e, FILE *out) {
+    switch (e->kind) {
+        case EXPR_NUMBER: fprintf(out, "%ld", e->num); break;
+        case EXPR_STRING: emit_c_string(out, e->str); break;
+        case EXPR_BOOL: fputs(e->boolean ? "1" : "0", out); break;
+        case EXPR_VAR: fputs(e->name, out); break;
+        case EXPR_CALL:
+            if (strcmp(e->callee, "print") == 0 && e->n_args == 1) {
+                const Expr *a = e->args[0];
+                if (a->kind == EXPR_STRING) { fputs("printf(\"%s\\n\", ", out); codegen_expr(a, out); }
+                else { fputs("printf(\"%ld\\n\", ", out); codegen_expr(a, out); }
+                fputs(")", out);
+            } else {
+                fputs(e->callee, out);
+                fputc('(', out);
+                for (size_t i = 0; i < e->n_args; i++) { if (i) fputs(", ", out); codegen_expr(e->args[i], out); }
+                fputc(')', out);
+            }
+            break;
+        case EXPR_UNARY:
+            fputc('(', out);
+            fputs(e->op == TOK_NOT ? "!" : "-", out);
+            codegen_expr(e->operand, out);
+            fputc(')', out);
+            break;
+        case EXPR_BINARY: {
+            const char *op = "?";
+            switch (e->op) {
+                case TOK_PLUS: op = "+"; break;
+                case TOK_MINUS: op = "-"; break;
+                case TOK_STAR: op = "*"; break;
+                case TOK_SLASH: op = "/"; break;
+                case TOK_EQ: op = "=="; break;
+                case TOK_NE: op = "!="; break;
+                case TOK_LT: op = "<"; break;
+                case TOK_GT: op = ">"; break;
+                case TOK_LE: op = "<="; break;
+                case TOK_GE: op = ">="; break;
+                case TOK_AND: op = "&&"; break;
+                case TOK_OR: op = "||"; break;
+                default: op = "?";
+            }
+            fputc('(', out);
+            codegen_expr(e->left, out);
+            fprintf(out, " %s ", op);
+            codegen_expr(e->right, out);
+            fputc(')', out);
+            break;
+        }
+    }
+}
+
+void codegen_fn(const Fn *f, FILE *out) {
+    const char *cname = strcmp(f->name, "main") == 0 ? "_dialect_entry" : f->name;
+    fprintf(out, "%s %s(", ctype(f->ret_type), cname);
+    for (size_t i = 0; i < f->n_params; i++) {
+        if (i) fputs(", ", out);
+        fprintf(out, "%s %s", ctype(f->param_types[i]), f->params[i]);
+    }
+    fputs(") {\n", out);
+    codegen_block(f->body, out);
+    fputs("}\n\n", out);
+}
+
+void codegen_entry(const ParseResult *r, FILE *out) {
+    if (r->entry) {
+        const char *cname = strcmp(r->entry, "main") == 0 ? "_dialect_entry" : r->entry;
+        fprintf(out, "    %s();\n", cname);
     }
 }
