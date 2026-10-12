@@ -5,15 +5,35 @@ on:
     branches:
       - develop
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            asset: dialect-linux-x86_64
+          - os: macos-latest
+            asset: dialect-macos-arm64
+          - os: macos-13
+            asset: dialect-macos-x86_64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Build
         run: make
+
+      - name: Stage asset
+        run: cp dialect "${{ matrix.asset }}"
+
+      - name: Publish nightly release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: develop
+          name: "develop (nightly)"
+          prerelease: true
+          files: ${{ matrix.asset }}
