@@ -77,6 +77,15 @@ static Token lex_keyword_or_ident(Lexer *lx) {
         {"chat",    TOK_KW_CHAT},
         {"true",    TOK_KW_TRUE},
         {"false",   TOK_KW_FALSE},
+        {"let",     TOK_KW_LET},
+        {"fn",      TOK_KW_FN},
+        {"if",      TOK_KW_IF},
+        {"else",    TOK_KW_ELSE},
+        {"while",   TOK_KW_WHILE},
+        {"return",  TOK_KW_RETURN},
+        {"int",     TOK_KW_INT},
+        {"str",     TOK_KW_STR},
+        {"bool",    TOK_KW_BOOL},
     };
     for (size_t i = 0; i < sizeof(kws) / sizeof(kws[0]); i++) {
         if (strlen(kws[i].kw) == len && strncmp(start, kws[i].kw, len) == 0) {
@@ -125,7 +134,38 @@ Token lexer_next(Lexer *lx) {
     if (c == ')') { advance(lx); return make_tok(lx, TOK_RPAREN, start, 1, line, col); }
     if (c == '[') { advance(lx); return make_tok(lx, TOK_LBRACKET, start, 1, line, col); }
     if (c == ']') { advance(lx); return make_tok(lx, TOK_RBRACKET, start, 1, line, col); }
-    if (c == '=') { advance(lx); return make_tok(lx, TOK_ASSIGN, start, 1, line, col); }
+    if (c == '+') { advance(lx); return make_tok(lx, TOK_PLUS, start, 1, line, col); }
+    if (c == '-') {
+        if (peek2(lx) == '>') { advance(lx); advance(lx); return make_tok(lx, TOK_ARROW, start, 2, line, col); }
+        advance(lx); return make_tok(lx, TOK_MINUS, start, 1, line, col);
+    }
+    if (c == '*') { advance(lx); return make_tok(lx, TOK_STAR, start, 1, line, col); }
+    if (c == '/') { advance(lx); return make_tok(lx, TOK_SLASH, start, 1, line, col); }
+    if (c == '=') {
+        if (peek2(lx) == '=') { advance(lx); advance(lx); return make_tok(lx, TOK_EQ, start, 2, line, col); }
+        advance(lx); return make_tok(lx, TOK_ASSIGN, start, 1, line, col);
+    }
+    if (c == '!') {
+        if (peek2(lx) == '=') { advance(lx); advance(lx); return make_tok(lx, TOK_NE, start, 2, line, col); }
+        advance(lx); return make_tok(lx, TOK_NOT, start, 1, line, col);
+    }
+    if (c == '<') {
+        if (peek2(lx) == '=') { advance(lx); advance(lx); return make_tok(lx, TOK_LE, start, 2, line, col); }
+        advance(lx); return make_tok(lx, TOK_LT, start, 1, line, col);
+    }
+    if (c == '>') {
+        if (peek2(lx) == '=') { advance(lx); advance(lx); return make_tok(lx, TOK_GE, start, 2, line, col); }
+        advance(lx); return make_tok(lx, TOK_GT, start, 1, line, col);
+    }
+    if (c == '&') {
+        if (peek2(lx) == '&') { advance(lx); advance(lx); return make_tok(lx, TOK_AND, start, 2, line, col); }
+        advance(lx); return make_tok(lx, TOK_IDENT, start, 1, line, col);
+    }
+    if (c == '|') {
+        if (peek2(lx) == '|') { advance(lx); advance(lx); return make_tok(lx, TOK_OR, start, 2, line, col); }
+        advance(lx); return make_tok(lx, TOK_IDENT, start, 1, line, col);
+    }
+    if (c == ';') { advance(lx); return make_tok(lx, TOK_SEMI, start, 1, line, col); }
     if (c == ',') { advance(lx); return make_tok(lx, TOK_COMMA, start, 1, line, col); }
     if (c == ':') { advance(lx); return make_tok(lx, TOK_COLON, start, 1, line, col); }
     if (c == '.') { advance(lx); return make_tok(lx, TOK_DOT, start, 1, line, col); }
@@ -171,6 +211,30 @@ const char *token_name(TokenType t) {
         case TOK_KW_CHAT: return "chat";
         case TOK_KW_TRUE: return "true";
         case TOK_KW_FALSE: return "false";
+        case TOK_KW_LET: return "let";
+        case TOK_KW_FN: return "fn";
+        case TOK_KW_IF: return "if";
+        case TOK_KW_ELSE: return "else";
+        case TOK_KW_WHILE: return "while";
+        case TOK_KW_RETURN: return "return";
+        case TOK_KW_INT: return "int";
+        case TOK_KW_STR: return "str";
+        case TOK_KW_BOOL: return "bool";
+        case TOK_PLUS: return "+";
+        case TOK_MINUS: return "-";
+        case TOK_STAR: return "*";
+        case TOK_SLASH: return "/";
+        case TOK_EQ: return "==";
+        case TOK_NE: return "!=";
+        case TOK_LT: return "<";
+        case TOK_GT: return ">";
+        case TOK_LE: return "<=";
+        case TOK_GE: return ">=";
+        case TOK_AND: return "&&";
+        case TOK_OR: return "||";
+        case TOK_NOT: return "!";
+        case TOK_ARROW: return "->";
+        case TOK_SEMI: return ";";
     }
     return "?";
 }

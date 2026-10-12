@@ -32,8 +32,15 @@ static void dump_tokens(const char *src) {
 /* генерирует C-код в поток out */
 static void emit_c(FILE *out, ParseResult *r) {
     codegen_prologue(out);
-    if (r->agent) codegen(r->agent, out);
-    if (r->harness) codegen_harness(r->harness, out);
+    if (r->n_fns > 0) {
+        for (size_t i = 0; i < r->n_fns; i++) codegen_fn(&r->fns[i], out);
+        codegen_main_open(out);
+        codegen_entry(r, out);
+    } else {
+        codegen_main_open(out);
+        if (r->agent) codegen(r->agent, out);
+        if (r->harness) codegen_harness(r->harness, out);
+    }
     codegen_epilogue(out);
 }
 
@@ -61,8 +68,8 @@ int main(int argc, char **argv) {
         fprintf(stderr, "dialect: ошибка разбора: %s\n", r.error);
         return 1;
     }
-    if (!r.agent && !r.harness) {
-        fprintf(stderr, "dialect: ни agent, ни harness не найдены\n");
+    if (!r.agent && !r.harness && r.n_fns == 0) {
+        fprintf(stderr, "dialect: ни agent, ни harness, ни функций не найдены\n");
         return 1;
     }
 
