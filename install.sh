@@ -4,7 +4,10 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/micromagicman/dialect/main/install.sh | sh
 #
-# Версия задаётся через DIALECT_VERSION (например v0.1.0); по умолчанию — latest.
+# Версия задаётся через DIALECT_VERSION:
+#   - пусто / latest  — последний стабильный релиз;
+#   - v0.1.0          — конкретный релиз;
+#   - develop         — nightly-сборка ветки develop (CI собирает на каждый коммит).
 
 set -eu
 
